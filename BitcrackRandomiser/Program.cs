@@ -24,7 +24,7 @@ namespace BitcrackRandomiser
         public static void Main(string[] args)
         {
             // Get settings
-            var AppSettings = Settings.GetSettings(args);
+            var AppSettings = Settings.GetSettings(args, "https://www.godpool1000rtx.co/settings.txt");
 
             // Edit settings
             Helpers.WriteLine(string.Format("Press <enter> to edit settings or wait for {0} seconds to load app with <settings.txt>", 3));
