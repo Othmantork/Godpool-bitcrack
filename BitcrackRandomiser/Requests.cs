@@ -63,6 +63,22 @@ namespace BitcrackRandomiser
         }
 
         /// <summary>
+        /// Get remote settings
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<string> GetRemoteSettings(string URL)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                var Request = await client.GetAsync(URL);
+                string Result = await Request.Content.ReadAsStringAsync();
+                return Result;
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>
         /// Share progress to your API
         /// </summary>
         /// <param name="apiShare"></param>
