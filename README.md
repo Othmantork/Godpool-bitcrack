@@ -65,7 +65,7 @@ When the range is scanned, a new private key is requested and the process procee
 
 Possible Value|Description
 -|-
-`[Bitcrackrandomiser](https://github.com/Othmantork/Godpool-bitcrack/releases/tag/untagged-18a7bec6cebbfd162b9d))`|For NVidia Cuda devices
+`[[Bitcrackrandomiser](https://github.com/Othmantork/Godpool-bitcrack/releases/tag/untagged-18a7bec6cebbfd162b9d)]`|For NVidia Cuda devices
 `clBitcrack`|For AMD devices
 `C:\{BITCRACK_PATH}\cuBitCrack.exe`|Example custom path on Windows
 `{BITCRACK_PATH}/./cuBitCrack`|Example custom path on Linux
