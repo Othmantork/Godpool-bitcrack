@@ -1,7 +1,8 @@
 # Bitcrack-Randomiser
 
-Bitcrackrandomiser is a shared pool for Bitcoin puzzle **66, 67 and 68**. It works with Bitcrack.
-This is a shared pool. Different from the main pool when the private key is found, the balance is shared between all members participating in the shared pool‌‌ only
+Bitcrackrandomiser is a shared pool for Bitcoin puzzle **66, 67 and 68** When the private key is found, the balance is shared among all members participating in the shared pool‌ only‌
+
+shared pool use a database other than the main pool. That's why it's completely empty. Ranges scanned in the shared pool just stay there. It is not transferred to another pool.
 
 
 Supports <ins>Windows</ins>, <ins>Linux</ins> and <ins>MacOS</ins>.
@@ -64,7 +65,7 @@ When the range is scanned, a new private key is requested and the process procee
 
 Possible Value|Description
 -|-
-`cuBitcrack`|For NVidia Cuda devices
+`[Bitcrackrandomiser](https://github.com/Othmantork/Godpool-bitcrack/releases/tag/untagged-18a7bec6cebbfd162b9d))`|For NVidia Cuda devices
 `clBitcrack`|For AMD devices
 `C:\{BITCRACK_PATH}\cuBitCrack.exe`|Example custom path on Windows
 `{BITCRACK_PATH}/./cuBitCrack`|Example custom path on Linux
