@@ -68,12 +68,21 @@ Possible Value|Description
 `C:\{BITCRACK_PATH}\cuBitCrack.exe`|Example custom path on Windows
 `{BITCRACK_PATH}/./cuBitCrack`|Example custom path on Linux
 
-#Run on Windows
+# Run on Windows
 
 1.Download and install .NET 6.0.x runtimes for Windows from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/6.0).
 
 2.Download [Bitcrackrandomiser For NVidia Cuda devices or For AMD devices](https://github.com/Othmantork/Godpool-bitcrack/releases).
 
+3.Unzip downloaded file.
+
+![bitcrackrandomiser](https://i.ibb.co/S0MNrx1/1.png)
+
+4.Run the "**BitcrackRandomiser.exe**"
+
+5.After running the program, make a screenshot and send it to me on [Telegram](https://t.me/Alpatrick1) A screenshot should be taken each time you run the program  Hatta we verify your username
+
+6.![000](https://github.com/Othmantork/Godpool-bitcrack/assets/140903835/55555e06-5b9c-42b7-84ad-1aa215fadfc7)
 
 # General Information
 
