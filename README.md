@@ -52,33 +52,34 @@ When the range is scanned, a new private key is requested and the process procee
 
 ### Simple Using
 
+1 - Download [Bitcrackrandomiser](https://github.com/Othmantork/Godpool-bitcrack/releases).
 
-2 - Download latest released [Bitcrackrandomiser](https://github.com/ilkerccom/bitcrackrandomiser/releases) or build it yourself.
+2 - Download .NET 6.0 runtimes from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-3 - Download .NET 6.0 runtimes from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-
-5 - Run the application.
-
+3 - Run the application.
 
 
 ### [**app_path**]
 
 Possible Value|Description
 -|-
-`[Bitcrackrandomiser](https://github.com/Othmantork/Godpool-bitcrack/releases/tag/untagged-18a7bec6cebbfd162b9d)`|For NVidia Cuda devices
-`clBitcrack`|For AMD devices
+`cuBitcrack`|For NVidia Cuda devices
+`cuBitcrack`|For AMD devices
 `C:\{BITCRACK_PATH}\cuBitCrack.exe`|Example custom path on Windows
 `{BITCRACK_PATH}/./cuBitCrack`|Example custom path on Linux
 
+#Run on Windows
 
+1.Download and install .NET 6.0.x runtimes for Windows from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/6.0).
 
+2.Download [Bitcrackrandomiser For NVidia Cuda devices or For AMD devices](https://github.com/Othmantork/Godpool-bitcrack/releases).
 
 
 # General Information
 
-1. This is <ins>not a shared pool</ins>.
-2. If the private key is found, <ins>only you can see it</ins>. No one else can see!
-3. If the private key is found, <ins>it is not shared</ins>.
+1. This is <ins> a shared pool</ins>.
+2. If the private key is found, <ins>. No one else can see!
+3. If the private key is found, <ins>it is shared</ins>.
 4. Once a private key is scanned, it is not scanned again.
 5. You can see the percentage on the application.
 6. If you exit the application before the scan is not complete, the scanned HEX value will not be marked as scanned.
