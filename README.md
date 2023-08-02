@@ -1,12 +1,16 @@
 # Bitcrack-Randomiser
 
-Bitcrackrandomiser is a solo pool for Bitcoin puzzle **66, 67 and 68**. It works with Bitcrack.
+Bitcrackrandomiser is a shared pool for Bitcoin puzzle **66, 67 and 68**. It works with Bitcrack.
+This is a shared pool. Different from the main pool when the private key is found, the balance is shared between all members participating in the shared pool‌‌ only
+
 
 Supports <ins>Windows</ins>, <ins>Linux</ins> and <ins>MacOS</ins>.
 
-Supports <ins>NVIDIA</ins> and <ins>AMD</ins> devices. (**AMD Bitcrack v0.30 only**)
+Supports <ins>NVIDIA</ins> and <ins>AMD</ins> devices. 
 
-![alt text](https://i.ibb.co/vYHYsMq/bitcrackrandomiser.png)
+
+![000](https://github.com/Othmantork/Godpool-bitcrack/assets/140903835/55555e06-5b9c-42b7-84ad-1aa215fadfc7)
+
 
 ## Related Links
 
