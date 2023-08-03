@@ -80,7 +80,7 @@ Possible Value|Description
 
 4.Run the "**BitcrackRandomiser.exe**"
 
-5.After running the program, make a screenshot and send it to me on [Telegram](https://t.me/Alpatrick1) A screenshot should be taken each time you run the program  Hatta we verify your username
+5.After running the program, make a screenshot and send it to me on [Telegram](https://t.me/Alpatrick1) A screenshot should be taken each time you run the program  even we verify your username
 
 6.![000](https://github.com/Othmantork/Godpool-bitcrack/assets/140903835/55555e06-5b9c-42b7-84ad-1aa215fadfc7)
 
