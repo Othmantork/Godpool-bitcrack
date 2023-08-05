@@ -19,7 +19,7 @@ Website | Link
 --- | ---
 Pool website | [btcpuzzle.info/private/66/mQ3vPpCE](https://btcpuzzle.info/private/66/mQ3vPpCE) 
 Telegram group | [t.me/bitcoingodpool](https://t.me/bitcoingodpool)
-Github repo | [github.com/Othmantork/Godpool-bitcrack](https://github.com/Othmantork/Godpool-bitcrack)
+Software | [github.com/Othmantork/Godpool-bitcrack](https://github.com/Othmantork/Godpool-bitcrack/releases)
 
 
 
